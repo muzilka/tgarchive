@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ошибка сервера</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0e1621 0%, #1a2a3a 100%);
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .error-container {
+            text-align: center;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 60px 40px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .error-code {
+            font-size: 120px;
+            font-weight: 700;
+            color: #ff4d4f;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 20px rgba(255, 77, 79, 0.3);
+        }
+        
+        .error-title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+        
+        .error-message {
+            font-size: 16px;
+            color: #b0b8c1;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .error-details {
+            background: rgba(255, 77, 79, 0.1);
+            border: 1px solid rgba(255, 77, 79, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 30px;
+            text-align: left;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            color: #ff7875;
+            word-break: break-all;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .error-info {
+            font-size: 12px;
+            color: #708499;
+            margin-bottom: 30px;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #2b5278;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #3a6fa0;
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid #708499;
+            color: #708499;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(112, 132, 153, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-code">500</div>
+        <div class="error-title">Внутренняя ошибка</div>
+        <div class="error-message">
+            На сервере произошла непредвиденная ошибка.
+        </div>
+        
+        <% if (error) { %>
+            <div class="error-details">
+                <%= error %>
+            </div>
+        <% } %>
+        
+        <div class="error-info">
+            Пожалуйста, попробуйте позже или свяжитесь с администратором.
+        </div>
+        
+        <div class="actions">
+            <a href="/" class="btn btn-primary">На главную</a>
+            <a href="javascript:history.back()" class="btn btn-secondary">Назад</a>
+        </div>
+    </div>
+</body>
+</html>

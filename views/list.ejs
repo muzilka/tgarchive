@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NWSDev's TG Archive</title>
+    <style>
+        body {
+            background-color: #0e1621;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            padding: 40px;
+            margin: 0;
+        }
+        .hub-container {
+            width: 100%;
+            max-width: 500px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 24px;
+            color: #4db8ff;
+            margin: 0;
+        }
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .auth-buttons a, .auth-buttons button {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .login-btn {
+            background: #2b5278;
+            color: white;
+        }
+        .login-btn:hover {
+            background: #3a6fa0;
+        }
+        .logout-btn {
+            background: #8b3a3a;
+            color: white;
+        }
+        .logout-btn:hover {
+            background: #a04a4a;
+        }
+        .user-info {
+            font-size: 12px;
+            color: #708499;
+            text-align: right;
+        }
+        .chat-list {
+            background: #17212b;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .chat-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            text-decoration: none;
+            color: white;
+            border-bottom: 1px solid #0e1621;
+            transition: background 0.2s;
+        }
+        .chat-item:hover {
+            background: #232e3c;
+        }
+        .chat-item:last-child {
+            border-bottom: none;
+        }
+        .avatar {
+            width: 45px;
+            height: 45px;
+            background: #2b5278;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+            font-size: 18px;
+            color: #fff;
+        }
+        .chat-info {
+            flex-grow: 1;
+        }
+        .chat-name {
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .chat-meta {
+            font-size: 12px;
+            color: #708499;
+        }
+        .groups-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+        }
+        .group-tag {
+            background: rgba(45, 85, 120, 0.3);
+            border: 1px solid rgba(45, 85, 120, 0.5);
+            border-radius: 12px;
+            padding: 3px 10px;
+            font-size: 11px;
+            color: #a8c5dd;
+            white-space: nowrap;
+        }
+        .chat-item-restricted {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            text-decoration: none;
+            color: #708499;
+            border-bottom: 1px solid #0e1621;
+            background: rgba(0, 0, 0, 0.3);
+            cursor: not-allowed;
+        }
+        .restricted-message {
+            flex-grow: 1;
+            font-size: 14px;
+        }
+        .lock-icon {
+            margin-right: 15px;
+            font-size: 18px;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="hub-container">
+        <div class="header">
+            <h1>NWSDev's Telegram Archive</h1>
+            <div class="auth-buttons">
+                <% if (user) { %>
+                    <div class="user-info">
+                        <%= user.name || user.email %>
+                        <% if (user.groups && user.groups.length > 0) { %>
+                            <div class="groups-list" style="margin-top: 8px;">
+                                <% user.groups.forEach(group => { %>
+                                    <span class="group-tag"><%= group %></span>
+                                <% }) %>
+                            </div>
+                        <% } %>
+                    </div>
+                    <a href="/auth/logout" class="logout-btn">Выход</a>
+                <% } else { %>
+                    <a href="/auth/login" class="login-btn">Вход</a>
+                <% } %>
+            </div>
+        </div>
+        <div class="chat-list">
+            <% chats.forEach(chat => { %>
+                <% if (chat.hasAccess) { %>
+                    <a href="/chat/<%= chat.id %>" class="chat-item">
+                        <div class="avatar"> 
+                            <% if (chat.avatar) { %>
+                                <img src="/media/<%= chat.id %>/<%= chat.avatar %>" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                            <% } else { %> 
+                                <%= chat.name.charAt(0).toUpperCase() %>
+                            <% } %>
+                        </div>
+                        <div class="chat-info">
+                            <div class="chat-name"><%= chat.name %></div>
+                            <div class="chat-meta">Нажмите для просмотра</div>
+                        </div>
+                    </a>
+                <% } else { %>
+                    <div class="chat-item-restricted">
+                        <div class="lock-icon">🔒</div>
+                        <div class="restricted-message">
+                            <% if (chat.requiresLogin) { %>
+                                Требуется вход в систему
+                            <% } else if (chat.requiredGroup) { %>
+                                Требуется группа <%= chat.requiredGroup %>
+                            <% } %>
+                        </div>
+                    </div>
+                <% } %>
+            <% }) %>
+            <% if (chats.length === 0) { %>
+                <div style="padding: 20px; text-align: center; color: #708499;">
+                    Чаты не найдены в папке chats_data
+                </div>
+            <% } %>
+        </div>
+    </div>
+</body>
+</html>

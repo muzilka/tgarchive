@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title><%= chatName %></title>
+    <style>
+        body { background: #0e1621; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff; }
+        .container { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; padding: 20px; }
+        
+        .bubble { 
+            max-width: 70%; padding: 10px 14px; border-radius: 16px; margin: 4px 0; 
+            position: relative; word-wrap: break-word;
+        }
+        .out { align-self: flex-end; background: #2b5278; border-bottom-right-radius: 4px; }
+        .in { align-self: flex-start; background: #182533; border-bottom-left-radius: 4px; }
+        
+        .name { color: #40a7e3; font-size: 13px; font-weight: bold; margin-bottom: 4px; }
+        
+        /* Цензура */
+        .is-censored { background: #111 !important; color: #444 !important; border: 1px dashed #333; }
+        .censored-text { font-style: italic; font-size: 12px; }
+        .sys-coment {
+            display:contents;
+            /* Убираем внешний фон и общую рамку */
+            background: none; 
+            border: none;
+            
+            /* Оставляем только разделитель сверху */
+            /* border-bottom: 2px dashed rgba(255, 255, 255, 0.15); */
+            
+            /* margin: 8px 0 0 0 !important; */
+            /* padding: 6px 2px 0 0; Паддинг только сверху, чтобы текст не лип к пунктиру */
+            
+            color: #4fbbfa;
+            /* font-size: px; Чуть меньше основного текста */
+            line-height: 1.2;
+            font-style: italic;
+            width: 100%; /* Растягиваем на всю ширину пузырька */
+        }
+
+        /* Медиаплееры */
+        /* Базовые стили для десктопа */
+        video.round { 
+            width: 250px; 
+            height: 250px; 
+            max-width: 100%; /* Чтобы не вылезал за границы пузырька */
+            aspect-ratio: 1 / 1; /* Сохраняем круг даже при сжатии */
+            border-radius: 50%; 
+            object-fit: cover; 
+            border: 2px solid #2b5278; 
+        }
+
+        audio { 
+            width: 300px; /* Растягиваем на всю ширину пузырька */
+            max-width: 300px; 
+            height: 35px; 
+            filter: invert(100%) hue-rotate(180deg) brightness(1.5); /* Чтобы плеер был виден на темном фоне */
+            margin: 8px 0; 
+        }
+
+        img { 
+            max-width: 100%; 
+            height: auto; 
+            border-radius: 8px; 
+            display: block;
+        }
+
+        /* --- Адаптивность для мобильных устройств (экраны до 480px) --- */
+        @media (max-width: 480px) {
+            video.round { 
+                width: 180px; /* Уменьшаем кружки на мобилках */
+                height: 180px; 
+            }
+            
+            .bubble {
+                max-width: 90%; /* На мобилках пузырьки могут быть шире */
+                font-size: 14px;
+            }
+            
+            audio {
+                max-width: 100%; /* Голосовое на всю ширину */
+            }
+        }
+        
+        .time { font-size: 10px; opacity: 0.5; text-align: right; margin-top: 4px; }
+        
+        /* Плашка с датой */
+        .date-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 16px 0;
+            gap: 8px;
+        }
+        
+        .date-divider::before,
+        .date-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .date-label {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #8a8a8a;
+            white-space: nowrap;
+        }
+        
+        .back-btn { position: fixed; top: 20px; left: 20px; color: #40a7e3; text-decoration: none; }
+        
+        .auth-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            font-size: 12px;
+            color: #708499;
+        }
+        
+        .logout-btn {
+            background: #8b3a3a;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .logout-btn:hover {
+            background: #a04a4a;
+        }
+        
+        .user-profile {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+        }
+        
+        .user-name {
+            font-weight: 500;
+            color: #ffffff;
+        }
+        
+        .user-groups {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            justify-content: flex-end;
+        }
+        
+        .user-group-tag {
+            background: rgba(45, 85, 120, 0.3);
+            border: 1px solid rgba(45, 85, 120, 0.5);
+            border-radius: 10px;
+            padding: 2px 8px;
+            font-size: 10px;
+            color: #a8c5dd;
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-btn">← К списку чатов</a>
+    <% if (user) { %>
+        <div class="auth-panel">
+            <div class="user-profile">
+                <div class="user-name"><%= user.name || user.email %></div>
+                <% if (user.groups && user.groups.length > 0) { %>
+                    <div class="user-groups">
+                        <% user.groups.forEach(group => { %>
+                            <span class="user-group-tag"><%= group %></span>
+                        <% }) %>
+                    </div>
+                <% } %>
+            </div>
+            <a href="/auth/logout" class="logout-btn">Выход</a>
+        </div>
+    <% } %>
+    <div class="container">
+        <% 
+            let lastDate = null;
+            const currentYear = new Date().getFullYear();
+            
+            const formatDateLabel = (dateString) => {
+                const date = new Date(dateString);
+                const day = date.getDate();
+                const month = new Intl.DateTimeFormat('ru-RU', { month: 'long' }).format(date);
+                const year = date.getFullYear();
+                
+                const dateKey = date.toLocaleDateString('ru-RU');
+                if (lastDate !== dateKey) {
+                    lastDate = dateKey;
+                    if (year === currentYear) {
+                        return day + ' ' + month;
+                    } else {
+                        return day + ' ' + month + ' ' + year;
+                    }
+                }
+                return null;
+            };
+        %>
+        <% messages.forEach(msg => { %>
+            <% 
+                const dateLabel = formatDateLabel(msg.date);
+            %>
+            <% if (dateLabel) { %>
+                <div class="date-divider">
+                    <span class="date-label"><%= dateLabel %></span>
+                </div>
+            <% } %>
+            <div class="bubble <%= msg.from_id === myId ? 'out' : 'in' %> <%= msg.censored ? 'is-censored' : '' %>">
+                <div class="name">
+                    <% 
+                        // Пытаемся найти пользователя в массиве users по ID отправителя
+                        const sender = users.find(u => u.id === msg.from_id); 
+                    %>
+
+                    <% if (sender) { %>
+                        <%= sender.displayName %>
+                    <% } else { %>
+                        <%= msg.from %>
+                    <% } %>
+                </div>
+                
+                <div class="content">
+                    <% if (msg.censored) { %>
+                        <span class="censored-text">[СООБЩЕНИЕ СКРЫТО]</span>
+                    <% } else { %>
+                        <% if (msg.media_type === 'voice_message') { %>
+                            <audio controls src="/media/<%= chatId %>/<%= msg.file %>"></audio>
+                        <% } else if (msg.media_type === 'video_message') { %>
+                            <video class="round" src="/media/<%= chatId %>/<%= msg.file %>" controls></video>
+                        <% } else if (msg.photo) { %>
+                            <img src="/media/<%= chatId %>/<%= msg.photo %>">
+                        <% } else if (msg.media_type === 'sticker') {%>
+                            <span><%=msg.sticker_emoji %>Стикер</span>    
+                        <%} else if (msg.contact_information) {%>
+                            <span class="sys-coment">Контакт</span><br>
+                            <span>Имя: <%=msg.contact_information.first_name%> <%=msg.contact_information.last_name%><br>Телефон: <%=msg.contact_information.phone_number%></span>
+                        <%} else if (!msg.text) {%>
+                            <span class="sys-coment">Мы не умеем работать с этим типом данных,<br>но догадываемся что это <%if (msg.media_type && msg.media_type !== '') {%><%=msg.media_type%><%}else{%>что-то новенькое для нашего приложения<%}%>.</span>
+                        <%} %>
+                        <div class="text"><%if (typeof msg.text === 'string') { %><%= msg.text %><% } else { %><span class="sys-coment">В сообщении присутствует сложное форматирование, которое мы не умеем обрабатывать</span><% } %></div>
+                    <% } %>
+                </div>
+                
+                <div class="time"><%= new Date(msg.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) %></div>
+            </div>
+        <% }) %>
+    </div>
+</body>
+</html>

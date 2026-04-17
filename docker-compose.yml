@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  tga_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tga-app
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      OIDC_ISSUER: ${OIDC_ISSUER}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
+      REDIRECT_URI: ${REDIRECT_URI}
+      SESSION_SECRET: ${SESSION_SECRET}
+    volumes:
+      # Монтируем chats_data для сохранения данных между перезагрузками
+      - ./chats_data:/app/chats_data:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    labels:
+      com.example.description: "Telegram Archive Web Viewer with OIDC Auth"
+
