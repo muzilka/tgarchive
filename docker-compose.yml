@@ -17,7 +17,7 @@ services:
       SESSION_SECRET: ${SESSION_SECRET}
     volumes:
       # Монтируем chats_data для сохранения данных между перезагрузками
-      - ./chats_data:/app/chats_data:ro
+      - ${CHATS_DATA_PATH:-./chats_data}:/app/chats_data:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/"]
