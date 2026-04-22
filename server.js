@@ -51,7 +51,7 @@ app.use(session({
 }));
 
 app.set('view engine', 'ejs');
-app.use('/media', express.static(CHATS_DIR));
+// app.use('/media', express.static(CHATS_DIR));
 
 // Маршрут входа
 app.get('/auth/login', (req, res) => {
@@ -248,6 +248,25 @@ app.get('/chat/:id', checkChatAccess, (req, res) => {
         user: user
     });
 });
+
+// Маршрут для отдачи медиа в соответствии с правами доступа
+app.get('/media/:id/:type/:fileName', checkChatAccess, (req, res) =>{
+    const {id, type, fileName} = req.params;
+    const allowedTypes = ['files','photos','round_video_messages','video_files','voice_messages'];
+
+    if (!allowedTypes.includes(type)){
+        return res.status(403).send("Доступ к этому типу файлов запрещен!");
+    }
+    const filePath = path.join(CHATS_DIR,id,type,fileName);
+
+    res.sendFile(filePath,(err) => {
+        if (err) {
+            if (!res.headersSent) {
+                res.status(404).render('error-404')
+            }
+        }
+    });
+})
 
 // Обработчик ошибок 404
 app.use((req, res) => {
